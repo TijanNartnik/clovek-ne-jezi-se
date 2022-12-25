@@ -84,6 +84,12 @@ baznaPolja = [
     Polje("red", -400, -350),
     Polje("red", -350, -350),
 
+    ## rumena baza
+    Polje("yellow", 400, -400),
+    Polje("yellow", 350, -400),
+    Polje("yellow", 400, -350),
+    Polje("yellow", 350, -350),
+
     ## modra baza
     Polje("blue", 400, 400),
     Polje("blue", 350, 400),
@@ -95,12 +101,6 @@ baznaPolja = [
     Polje("green", -350, 400),
     Polje("green", -400, 350),
     Polje("green", -350, 350),
-
-    ## rumena baza
-    Polje("yellow", 400, -400),
-    Polje("yellow", 350, -400),
-    Polje("yellow", 400, -350),
-    Polje("yellow", 350, -350),
 ]
 
 koncnaPolja = [
@@ -110,17 +110,17 @@ koncnaPolja = [
     Polje("red", 25, -125),
     Polje("red", 25, -50),
 
-    ## modra koncna polja
-    Polje("blue", 25, 325),
-    Polje("blue", 25, 250),
-    Polje("blue", 25, 175),
-    Polje("blue", 25, 100),
-
     ## rumena koncna polja
     Polje("yellow", 325, 25),
     Polje("yellow", 250, 25),
     Polje("yellow", 175, 25),
     Polje("yellow", 100, 25),
+
+    ## modra koncna polja
+    Polje("blue", 25, 325),
+    Polje("blue", 25, 250),
+    Polje("blue", 25, 175),
+    Polje("blue", 25, 100),
 
     ## zelena koncna polja
     Polje("green", -275, 25),
@@ -129,10 +129,8 @@ koncnaPolja = [
     Polje("green", -50, 25),
 ]
 
-rdeceZacetnoPolje = 0
-rumenoZacetnoPolje = 10
-modroZacetnoPolje = 20
-zelenoZacetnoPolje = 30
+zacetnoIgralnoPolje = [0, 10, 20, 30]
+zacetnoKoncnoPolje = [0, 4, 8, 12]
 
 naKoncu = [
   0,
@@ -225,56 +223,98 @@ def zmaga(barva):
     write(zmagovalec, font=("Verdana", 50, "normal"))
 
 
-def premakniFiguro(barva, premik):
+def barvaVIndex(barva):
   if barva=="red":
-    prejsnoPolje = 0
-    if lokacijeFigur[0]-1 > len(igralnaPolja):
-      razlika = (lokacijeFigur[0]-2) - len(igralnaPolja)
-      prejsnoPolje = koncnaPolja[razlika]
-    elif lokacijeFigur[0]-1 == len(igralnaPolja):
-      prejsnoPolje = igralnaPolja[0]
-    else:
-      prejsnoPolje = igralnaPolja[lokacijeFigur[0]-1]
+    return 0
+  elif barva == "yellow":
+    return 1
+  elif barva == "blue":
+    return 2
+  elif barva == "green":
+    return 3
+  
 
-    lokacijeFigur[0] = lokacijeFigur[0]+premik
-    print(prejsnoPolje.barva, prejsnoPolje.x, prejsnoPolje.y)
-    narisiPolje(prejsnoPolje.barva, prejsnoPolje.x, prejsnoPolje.y)
-    print(premik, lokacijeFigur[0])
+def indexVBarvo(index):
+  if index==0:
+    return "red"
+  elif index==1:
+    return "yellow"
+  elif index==2:
+    return "blue"
+  elif index==3:
+    return "green"
+
+
+def premakniFiguro(barva, premik):
+  index = barvaVIndex(barva)
+  prejsnoPolje = 0
+  if lokacijeFigur[index]-1 > len(igralnaPolja):
+    razlika = (lokacijeFigur[index]-2) - len(igralnaPolja) + zacetnoKoncnoPolje[index]
+    prejsnoPolje = koncnaPolja[razlika]
+  elif lokacijeFigur[index]-1 == len(igralnaPolja):
+    prejsnoPolje = igralnaPolja[zacetnoIgralnoPolje[index]]
+  else:
+    mesto = lokacijeFigur[index]-1 + zacetnoIgralnoPolje[index]
+    if mesto > len(igralnaPolja) - 1:
+      mesto -= len(igralnaPolja) - 1
+    prejsnoPolje = igralnaPolja[mesto]
+
+  lokacijeFigur[index] = lokacijeFigur[index] + premik
+  narisiPolje(prejsnoPolje.barva, prejsnoPolje.x, prejsnoPolje.y)
     
-    if lokacijeFigur[0]-1 > len(igralnaPolja):
-      baznoPolje = lokacijeFigur[0] - len(igralnaPolja) - 2
-      print(baznoPolje)
-      x = koncnaPolja[baznoPolje].x
-      y = koncnaPolja[baznoPolje].y
-      print("v enki")
-      narisiFiguro(barva, x, y+4)
-    elif lokacijeFigur[0]-1 == len(igralnaPolja):
-      x = igralnaPolja[0].x
-      y = igralnaPolja[0].y
-      print("v dvojki")
-      narisiFiguro(barva, x, y+4)
-    else:
-      x = igralnaPolja[lokacijeFigur[0]-1].x
-      y = igralnaPolja[lokacijeFigur[0]-1].y
-      print("v trojki")
-      narisiFiguro(barva, x, y+4)
+  if lokacijeFigur[index]-1 > len(igralnaPolja):
+    baznoPolje = lokacijeFigur[index] - len(igralnaPolja) - 2 + zacetnoKoncnoPolje[index]
+    x = koncnaPolja[baznoPolje].x
+    y = koncnaPolja[baznoPolje].y
+    print("gre v bazo")
+    narisiFiguro(barva, x, y+4)
+  elif lokacijeFigur[index]-1 == len(igralnaPolja):
+    x = igralnaPolja[zacetnoIgralnoPolje[index]].x
+    y = igralnaPolja[zacetnoIgralnoPolje[index]].y
+    narisiFiguro(barva, x, y+4)
+  else:
+    mesto = lokacijeFigur[index]-1 + zacetnoIgralnoPolje[index]
+    if mesto > len(igralnaPolja)-1:
+      mesto -= len(igralnaPolja) - 1
+    x = igralnaPolja[mesto].x
+    y = igralnaPolja[mesto].y
 
-    ## figura je prisla do konca
-    if lokacijeFigur[0] == (45-naKoncu[0]):
-      lokacijeFigur[0] = 0
-      naKoncu[0] += 1
-      if naKoncu[0] == 4:
-        zmaga(barva)
+    narisiFiguro(barva, x, y+4)
+
+  ## figura je prisla do konca
+  if lokacijeFigur[index] == (45-naKoncu[index]):
+    lokacijeFigur[index] = 0
+    naKoncu[index] += 1
+    if naKoncu[index] == 4:
+      zmaga(barva)
         
 
 
 def preveriPremik(barva, premik):
-  if barva == "red":
-    if (lokacijeFigur[0]+premik) > (45-naKoncu[0]):
+  index = barvaVIndex(barva)
+  if (lokacijeFigur[index]+premik) > (45-naKoncu[index]):
+    if index == 0:
       setx(+5)
       write("Ni prostora za premik")
+  else:
+    premakniFiguro(barva, premik)
+
+
+def odigrajOstaleIgralce():
+  for x in range(3):
+    index = x+1 # 0 so ze rdeci
+    x = random.randint(1, 6)
+    barva = indexVBarvo(index)
+    print(barva, x)
+    if lokacijeFigur[index] == 0:
+      if x == 6:
+        st = naKoncu[index] + 1
+        for y in range(st):
+          polje = baznaPolja[y+(index*4)]
+          narisiPolje(polje.barva, polje.x, polje.y)
+        preveriPremik(barva, 1)
     else:
-      premakniFiguro(barva, premik)
+      preveriPremik(barva, x)
 
 
 def vrziKocko():
@@ -297,6 +337,7 @@ def vrziKocko():
   goto(-10, -460)
   write(x)
   up()
+  
   if lokacijeFigur[0] == 0:
     if x < 6:
       setx(+5)
@@ -308,7 +349,13 @@ def vrziKocko():
         narisiPolje(polje.barva, polje.x, polje.y)
       preveriPremik("red", 1)
   else:
+    if x == 6:
+      setx(+5)
+      write(" - lahko meces se 1krat")
     preveriPremik("red", x)
+
+  odigrajOstaleIgralce()
+
 
 
 def klikGumba(x, y):
