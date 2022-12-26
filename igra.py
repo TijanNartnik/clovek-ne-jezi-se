@@ -1,6 +1,7 @@
 # PROJEKT INFORMATIKA - TIJAN NARTNIK, 1. B
 # CLOVEK NE JEZI SE
 
+# uvozimo vse potrebne knjižnjice
 from turtle import *
 import random
 import time
@@ -22,9 +23,9 @@ class Figura:
     self.x = x
     self.y = y
 
+
 ## vsa igralna polja
 igralnaPolja = [
-    ## bela polja (in barvna startna polja)
     Polje("red", -50, -350),
     Polje("white", 25, -350),
     Polje("white", 100, -350),
@@ -78,6 +79,7 @@ igralnaPolja = [
     Polje("white", -50, -275),    
 ]
 
+# vsa polja kjer so figure na zacetku
 baznaPolja = [
     ## rdeca baza
     Polje("red", -400, -400),
@@ -104,6 +106,7 @@ baznaPolja = [
     Polje("green", -350, 350),
 ]
 
+# polja na sredini - kamor figure prispejo
 koncnaPolja = [
    ## rdeca koncna polja
     Polje("red", 25, -275),
@@ -130,9 +133,14 @@ koncnaPolja = [
     Polje("green", -50, 25),
 ]
 
+
 zacetnoIgralnoPolje = [0, 10, 20, 30]
 zacetnoKoncnoPolje = [0, 4, 8, 12]
 
+konec = False
+barvaIgralca = "red"
+
+# stevilo figur, ki je prospelo na konec (za vsako barvo)
 naKoncu = [
   0,
   0,
@@ -140,8 +148,7 @@ naKoncu = [
   0
 ]
 
-# 0 - redeci, 1 - rumeni, 2 - modri, 3 - zeleni
-premik = 0
+# trenutne lokacije figure za vsako barvo, ki je na polju (shranjeni so indexi Polja)
 lokacijeFigur = [
   0,
   0,
@@ -149,7 +156,7 @@ lokacijeFigur = [
   0
 ]
 
-
+# funkcija , ki narise polje (krog)
 def narisiPolje(barva, x, y):
     up()
     goto(x, y)
@@ -160,7 +167,7 @@ def narisiPolje(barva, x, y):
     end_fill()
     up()
 
-    
+# funckija, ki narise figuro (malo manjsi krog s krizom)
 def narisiFiguro(barva, x, y):
     up()
     goto(x, y)
@@ -180,7 +187,7 @@ def narisiFiguro(barva, x, y):
     width(1)
     up()
     
-
+# narise gumb na katerega igralec
 def narisiGumb():
     up()
     goto(-20, -425)
@@ -197,8 +204,14 @@ def narisiGumb():
     goto(-15, -400)
     write("Vrzi Kocko")
 
-
+# funkcija, ki narise celotno plosco (s vsemi polji in figurami)
 def narisiPlosco():
+    # pocisti ekran in pobarvaj na belo, ce se igra ponovno
+    clear()
+    screen.bgcolor("white")
+    goto(0, 0)
+
+    # narisi vsa polja in figure
     for x in igralnaPolja:
       narisiPolje(x.barva, x.x, x.y)
     for x in koncnaPolja:
@@ -206,23 +219,24 @@ def narisiPlosco():
     for x in baznaPolja:
       narisiPolje(x.barva, x.x, x.y)
       narisiFiguro(x.barva, x.x, x.y+4)
+      
     narisiGumb()
 
-
+# ko nekdo zmaga ta funkcija prebarva ekran in napise tekst
 def zmaga(barva):
     clear()
     screen.bgcolor(barva)
-    goto(-250, 0)
-    zmagovalec = "Rdeci zmaga!"
+    goto(-600, 0)
+    zmagovalec = "Rdeci zmaga! Klikni, ce zelis igrati se enkrat!"
     if barva == "green":
-      zmagovalec = "Zeleni zmaga!"
+      zmagovalec = "Zeleni zmaga! Klikni, ce zelis igrati se enkrat!"
     elif barva == "blue":
-      zmagovalec = "Modri zmaga!"
+      zmagovalec = "Modri zmaga! Klikni, ce zelis igrati se enkrat!"
     elif barva == "yellow":
-      zmagovalec = "Rumeni zmaga!"
+      zmagovalec = "Rumeni zmaga! Klikni, ce zelis igrati se enkrat!"
     write(zmagovalec, font=("Verdana", 50, "normal"))
 
-
+# funkcija ki pretvori barvo v index
 def barvaVIndex(barva):
   if barva=="red":
     return 0
@@ -233,7 +247,7 @@ def barvaVIndex(barva):
   elif barva == "green":
     return 3
   
-
+# funkcija, ki pretvori index v barvo
 def indexVBarvo(index):
   if index==0:
     return "red"
@@ -244,9 +258,12 @@ def indexVBarvo(index):
   elif index==3:
     return "green"
 
-
+# glavna funkcija, ki skrbi ze premike figur
 def premakniFiguro(barva, premik):
+  global konec
   index = barvaVIndex(barva)
+
+  # dobi index prejsnega polja (pred premikom)
   prejsnoPolje = 0
   if lokacijeFigur[index]-1 > len(igralnaPolja):
     razlika = (lokacijeFigur[index]-2) - len(igralnaPolja) + zacetnoKoncnoPolje[index]
@@ -259,68 +276,76 @@ def premakniFiguro(barva, premik):
       mesto -= len(igralnaPolja) - 1
     prejsnoPolje = igralnaPolja[mesto]
 
+  # poveca lokacijo figure za premik
   lokacijeFigur[index] = lokacijeFigur[index] + premik
+  # pobrise prejsno polje
   narisiPolje(prejsnoPolje.barva, prejsnoPolje.x, prejsnoPolje.y)
-    
+
   if lokacijeFigur[index]-1 > len(igralnaPolja):
+    # figura se premakne v koncno polje
     baznoPolje = lokacijeFigur[index] - len(igralnaPolja) - 2 + zacetnoKoncnoPolje[index]
     x = koncnaPolja[baznoPolje].x
     y = koncnaPolja[baznoPolje].y
-    print("gre v bazo")
     narisiFiguro(barva, x, y+4)
   elif lokacijeFigur[index]-1 == len(igralnaPolja):
+    # figura se premakne na prvo polje (zunaj baze)
     x = igralnaPolja[zacetnoIgralnoPolje[index]].x
     y = igralnaPolja[zacetnoIgralnoPolje[index]].y
     narisiFiguro(barva, x, y+4)
   else:
+    # figura se premakne normalno
     mesto = lokacijeFigur[index]-1 + zacetnoIgralnoPolje[index]
     if mesto > len(igralnaPolja)-1:
       mesto -= len(igralnaPolja) - 1
     x = igralnaPolja[mesto].x
     y = igralnaPolja[mesto].y
-
     narisiFiguro(barva, x, y+4)
 
-  ## figura je prisla do konca
+  # figura je prisla do konca
   if lokacijeFigur[index] == (45-naKoncu[index]):
     lokacijeFigur[index] = 0
     naKoncu[index] += 1
+    # na cilju so vse 4 fiure, barva zmaga
     if naKoncu[index] == 4:
       zmaga(barva)
+      konec = True
+      
         
-
-
+# preveri ce je pred figuro dovolj prostora za premik, ce ga ni to igralcu napise
 def preveriPremik(barva, premik):
+  global barvaIgralca
   index = barvaVIndex(barva)
   if (lokacijeFigur[index]+premik) > (45-naKoncu[index]):
-    if index == 0:
+    if index == barvaVIndex(barvaIgralca):
       setx(+5)
       write("Ni prostora za premik")
   else:
     premakniFiguro(barva, premik)
 
-
+# funkcija, ki odigra ostale barve (rumeno, modro, zeleno)
 def odigrajOstaleIgralce():
+  global barvaIgralca
+  igralec = barvaVIndex(barvaIgralca)
   for x in range(3):
-    index = x+1 # 0 so ze rdeci
-    x = random.randint(1, 6)
-    barva = indexVBarvo(index)
-    print(barva, x)
-    if lokacijeFigur[index] == 0:
-      if x == 6:
-        st = naKoncu[index] + 1
-        for y in range(st):
-          polje = baznaPolja[y+(index*4)]
-          narisiPolje(polje.barva, polje.x, polje.y)
-        preveriPremik(barva, 1)
-    else:
-      preveriPremik(barva, x)
+    if x != igralec:
+      index = x
+      x = random.randint(1, 6)
+      barva = indexVBarvo(index)
+      if lokacijeFigur[index] == 0:
+        if x == 6:
+          st = naKoncu[index] + 1
+          for y in range(st):
+            polje = baznaPolja[y+(index*4)]
+            narisiPolje(polje.barva, polje.x, polje.y)
+          preveriPremik(barva, 1)
+      else:
+        preveriPremik(barva, x)
 
-
+# se pozene, ko igralec klike na gumb
 def vrziKocko():
+  global barvaIgralca
   up()
   x = random.randint(1, 6)
-  print(x)
   premik = x
   # pocisti ta del platna
   goto(-20, -460)
@@ -337,33 +362,69 @@ def vrziKocko():
   goto(-10, -460)
   write(x)
   up()
+
+  index = barvaVIndex(barvaIgralca)
+  print("x, ", barvaIgralca, str(index))
   
-  if lokacijeFigur[0] == 0:
+  if lokacijeFigur[index] == 0:
     if x < 6:
       setx(+5)
       write("Ni 6 - ne mores iz baze")
     else:
-      st = naKoncu[0] + 1
+      st = naKoncu[index] + 1
       for x in range(st):
         polje = baznaPolja[x]
         narisiPolje(polje.barva, polje.x, polje.y)
-      preveriPremik("red", 1)
+      preveriPremik(barvaIgralca, 1)
+    odigrajOstaleIgralce()
   else:
     if x == 6:
       setx(+5)
       write(" - lahko meces se 1krat")
-      preveriPremik("red", x)
+      preveriPremik(barvaIgralca, x)
     else:
-      preveriPremik("red", x)
+      preveriPremik(barvaIgralca, x)
       odigrajOstaleIgralce()
 
-
-def klikGumba(x, y):
-  if -20 <= x <= 60 and -425 <= y <= -375:
-    vrziKocko()
+# se pozene ko igralec klikne kamor koli na ekran
+def klikNaEkran(x, y):
+  # ce je igre konec lahko igralec ponovi igro
+  global konec
+  if konec:
+    # se ena igra
+    narisiPlosco()
+    konec = False
+  else:
+    # igra se poteka
+    # preveri ce se koordinate klika ujemajo s koordinatami gumba
+    if -20 <= x <= 60 and -425 <= y <= -375:
+      # gumb je kliknen, vrzi kocko
+      vrziKocko()
       
-    
+# izbere barvo
+def izberiBarvo():
+  global barvaIgralca
+  pravilno = False
 
+  # ponavlja dokler igralec ne izbere pravilne barve
+  while not pravilno:
+    b = input("S katero barvo želiš igrati (red, blue, yellow, green)? ")
+    if b == "red" or b == "green" or b == "blue" or b == "yellow":
+      # izbral je pravilno
+      barvaIgralca = b
+      pravilno = True
+    else:
+      # izbral je narobe
+      print("Barva ni na voljo!")
+  
+
+
+# igralec si izbere barvo
+izberiBarvo()
+
+# narise plosco (igra se lahko zacne)
 narisiPlosco()
-screen.onclick(klikGumba)
+
+# spremlja ce je ekran klknjen
+screen.onclick(klikNaEkran)
 screen.mainloop()
