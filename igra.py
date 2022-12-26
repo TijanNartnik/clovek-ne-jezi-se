@@ -3,6 +3,7 @@
 
 from turtle import *
 import random
+import time
 
 screen = Screen()
 
@@ -140,7 +141,6 @@ naKoncu = [
 ]
 
 # 0 - redeci, 1 - rumeni, 2 - modri, 3 - zeleni
-naPotezi = 0
 premik = 0
 lokacijeFigur = [
   0,
@@ -352,10 +352,10 @@ def vrziKocko():
     if x == 6:
       setx(+5)
       write(" - lahko meces se 1krat")
-    preveriPremik("red", x)
-
-  odigrajOstaleIgralce()
-
+      preveriPremik("red", x)
+    else:
+      preveriPremik("red", x)
+      odigrajOstaleIgralce()
 
 
 def klikGumba(x, y):
